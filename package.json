@@ -1,0 +1,19 @@
+{
+  "name": "ai-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+     "dev": "nodemon server.js",
+     "start": "node server.js"
+
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  }
+}
