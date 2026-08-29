@@ -143,4 +143,5 @@ vite.config.ts.timestamp-*
 .vite/
 node_modules/
 .env
+.env.example
 dist/
