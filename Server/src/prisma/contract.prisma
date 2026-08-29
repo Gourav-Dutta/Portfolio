@@ -1,0 +1,129 @@
+// use prisma-next
+
+model User {
+  id           Int              @id @default(autoincrement())
+  name         String
+  email        String           @unique
+  phone        String
+  passwordHash String
+  createdAt    TimestamptzString @default(now())
+
+  addresses    UserAddress[]
+  reservations Reservation[]
+  ratings      Rating[]
+}
+
+model UserAddress {
+  id      Int     @id @default(autoincrement())
+  userId  Int
+  line1   String
+  line2   String?
+  city    String
+  state   String
+  pincode String
+  lat     Float
+  lng     Float
+
+  user    User @relation(fields: [userId], references: [id])
+}
+
+model Restaurant {
+  id           Int              @id @default(autoincrement())
+  name         String
+  description  String?
+  phone        String
+  cuisineType  String
+  openingHours String
+  createdAt    TimestamptzString @default(now())
+
+  address      RestaurantAddress?
+  menuCards    MenuCard[]
+  tables       RestaurantTable[]
+  offers       Offer[]
+  reservations Reservation[]
+}
+
+model RestaurantAddress {
+  id           Int    @id @default(autoincrement())
+  restaurantId Int    @unique
+  line1        String
+  line2        String?
+  city         String
+  state        String
+  pincode      String
+  lat          Float
+  lng          Float
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model MenuCard {
+  id              Int              @id @default(autoincrement())
+  restaurantId    Int
+  itemName        String
+  description     String?
+  itemPrice       Float
+  category        String
+  imageUrl        String?
+  prepTimeMinutes Int
+  avgRating       Float          @default(0)
+  reviewCount     Int              @default(0)
+  createdAt       TimestamptzString @default(now())
+
+  restaurant      Restaurant       @relation(fields: [restaurantId], references: [id])
+  ratings         Rating[]
+}
+
+model RestaurantTable {
+  id           Int     @id @default(autoincrement())
+  restaurantId Int
+  tableNumber  String
+  capacity     Int
+  isActive     Boolean @default(true)
+
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  reservations Reservation[]
+}
+
+model Offer {
+  id              Int              @id @default(autoincrement())
+  restaurantId    Int
+  title           String
+  description     String?
+  discountPercent Float
+  validFrom       DateString
+  validTo         DateString
+  isActive        Boolean          @default(true)
+
+  restaurant      Restaurant       @relation(fields: [restaurantId], references: [id])
+}
+
+model Reservation {
+  id           Int              @id @default(autoincrement())
+  userId       Int
+  restaurantId Int
+  tableId      Int
+  partySize    Int
+  bookingTime  TimestamptzString
+  status       String
+  createdAt    TimestamptzString @default(now())
+
+  user         User             @relation(fields: [userId], references: [id])
+  restaurant   Restaurant       @relation(fields: [restaurantId], references: [id])
+  table        RestaurantTable  @relation(fields: [tableId], references: [id])
+  ratings      Rating[]
+}
+
+model Rating {
+  id             Int              @id @default(autoincrement())
+  userId         Int
+  menuCardId     Int
+  reservationId  Int?
+  rating         Int
+  comment        String?
+  createdAt      TimestamptzString @default(now())
+
+  user           User             @relation(fields: [userId], references: [id])
+  menuCard       MenuCard         @relation(fields: [menuCardId], references: [id])
+  reservation    Reservation?     @relation(fields: [reservationId], references: [id])
+}
