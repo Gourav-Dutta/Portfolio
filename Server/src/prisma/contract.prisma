@@ -2,10 +2,12 @@
 
 model User {
   id           Int              @id @default(autoincrement())
-  name         String
+  auth0Id      String
+  name         String?
   email        String           @unique
-  phone        String
-  passwordHash String
+  phone        String?
+  profileComplete Boolean  @default(false)
+  
   createdAt    TimestamptzString @default(now())
 
   addresses    UserAddress[]
