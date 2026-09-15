@@ -54,6 +54,14 @@ const userSchema = z.object({
 })
 
 
+
+// async function completProfile(req, res){
+//   try{
+
+//   }
+// }
+
+
 export {
   testDatabase as test,
   getData as getUsers

@@ -1,26 +1,133 @@
 import express from "express"
 import { testRouter } from "./Routes/testDatabase.js";
-// import { configDotenv } from "dotenv";
-// const { auth } = require('express-openid-connect');
-// const escape = require('escape-html');
 import dotenv from "dotenv"
-import {auth} from 'express-openid-connect'
+import { auth } from 'express-openid-connect'
 import escape from 'escape-html'
-
-const app= express();
+import {db} from './src/prisma/db.ts'
+import { decodeJwt } from "jose";
+const app = express();
 dotenv.config();
-app.listen(8000, ()=>{console.log("Server is running")})
+
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   auth({
-    authRequired: false, // set to true to require authentication for all routes
+    authRequired: false,
     auth0Logout: true,
     secret: process.env.SECRET,
     baseURL: process.env.BASE_URL,
     clientID: process.env.CLIENT_ID,
     issuerBaseURL: process.env.ISSUER_BASE_URL,
+    afterCallback: async (req, res, session) => {
+  try {
+
+
+  console.log("========== AUTH0 CALLBACK ==========");
+
+    const claims = decodeJwt(session.id_token);
+
+    console.log("Auth0 claims:", claims);
+
+    const auth0Id = claims.sub;
+    const email = claims.email;
+
+    console.log("Auth0 ID:", auth0Id);
+    console.log("Email:", email);
+
+    if (!auth0Id || !email) {
+      console.log("Missing Auth0 ID or email");
+      return session;
+    }
+
+    const user = await db.orm.public.User.upsert({
+      where: {
+        auth0Id: auth0Id,
+      },
+
+      update: {},
+
+      create: {
+        auth0Id: auth0Id,
+        email: email,
+        name: null,
+        phone: null,
+        profileComplete: false,
+      },
+    });
+
+    console.log("Database user:", user);
+    console.log("========== USER CREATED/FOUND ==========");
+
+    return session;
+
+    // console.log(req );
+//    const auth0Id = req.oidc.user?.sub;
+// const email = req.oidc.user?.email;
+// const name = req.oidc.user?.name;
+
+//     console.log("========== AUTH0 CALLBACK ==========");
+//     console.log("Auth0 ID:", auth0Id);
+//     console.log("Email:", email);
+//     // console.log("Name:", name);
+
+//     if (!auth0Id || !email) {
+//       console.log("Missing Auth0 ID or email");
+//       return session;
+//     }
+
+//     const user = await db.orm.public.User.upsert({
+//       where: {
+//         auth0Id: auth0Id,
+//       },
+
+//       update: {},
+
+//       create: {
+//         auth0Id: auth0Id,
+//         email: email,
+//         name: name ?? null,
+//         profileComplete: false,
+//       },
+//     });
+
+//     console.log("Database user:", user);
+//     console.log("========== USER CREATED/FOUND ==========");
+
+//     return session;
+
+  } catch (error) {
+    console.error("========== AUTH0 DATABASE ERROR ==========");
+    console.error(error);
+
+    throw error;
+  }
+},
   })
 );
+
+
+app.use(async (req, res, next) => {
+  if (!req.oidc.isAuthenticated()) return next();
+if (
+  req.path === "/complete-profile" ||
+  req.path === "/api/complete-profile" ||
+  req.path === "/logout"
+) {
+  return next();
+}
+
+  const user = await db.orm.public.User
+  .where({
+  auth0Id: req.oidc.user.sub
+  })
+  .first();
+
+  if (user && !user.profileComplete) {
+    return res.redirect("/complete-profile");
+  }
+  next();
+});
+
 app.get('/signup', (req, res) =>
   res.oidc.login({
     returnTo: '/',
@@ -35,7 +142,6 @@ app.get('/', (req, res) => {
       <a href="/login">Log in</a>
     `);
   }
-
   res.type('html').send(`
     <p>Logged in as ${escape(req.oidc.user.name)}</p>
     <h1>User Profile</h1>
@@ -43,9 +149,18 @@ app.get('/', (req, res) => {
     <a href="/logout">Log out</a>
   `);
 });
-app.get('/', (req, res)=>{
-    return res.send("Serever is running")
-})
 
+app.get("/complete-profile", (req, res) => {
+  if (!req.oidc.isAuthenticated()) return res.redirect("/login");
+  res.type("html").send(`
+    <form method="POST" action="/api/complete-profile">
+      <input name="phone" placeholder="Phone" />
+      <input name="name" placeholder="Name" />
+      <button type="submit">Save</button>
+    </form>
+  `);
+});
 
 app.use("/api", testRouter);
+
+app.listen(8000, () => console.log("Server is running"));
