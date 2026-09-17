@@ -14,5 +14,5 @@
   },
   "include": [
     "**/*.ts"
-  ]
+, "prisma.config.js"  ]
 }

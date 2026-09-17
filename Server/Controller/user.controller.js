@@ -1,4 +1,4 @@
-import { db } from "../src/prisma/db.ts";
+// import { db } from "../src/prisma/db.ts";
 import {z} from 'zod'
 
 
