@@ -1,44 +1,59 @@
-// // src/index.js
-// require('dotenv').config();
-// const express = require('express');
-// const prisma = require('./db');
-
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
-import prisma from './src/db.js';
+// import prisma from './src/db.js';
+import { prisma } from './src/db.js';
 
-dotenv.config();
-// const prisma = new PrismaClient();
 const app = express();
-app.use(express.json()); // Allow parsing JSON request bodies
 
-// GET: Fetch all users
-app.get('/users', async (req, res) => {
+app.use(express.json());
+
+app.get('/', (_req, res) => {
+  res.json({
+    message: 'KhanaKhoj API is running 🚀',
+  });
+});
+
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'OK',
+  });
+});
+
+app.get('/users', async (_req, res) => {
   try {
     const users = await prisma.user.findMany();
+
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message,
+    });
   }
 });
 
-// POST: Create a user
-app.post('/users', async (req, res) => {
-//   const { email, name } = req.body;
+app.post('/users', async (_req, res) => {
   try {
-    const newUser = await prisma.user.create({
-      data: { 
-        email: 'gourav@gmail.com',
-        name: 'Gourav Dutta'
+    const user = await prisma.user.create({
+      data: {
+        email: 'gourav230@gmail.com',
+        name: 'Gourav Dutta',
       },
     });
-    res.status(201).json(newUser);
+
+    res.status(201).json(user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error(error);
+
+    res.status(400).json({
+      error: error.message,
+    });
   }
 });
 
 const PORT = process.env.PORT || 8000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
