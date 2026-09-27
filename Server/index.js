@@ -1,13 +1,14 @@
 import express from "express";
-import { toNodeHandler } from "better-auth/node";
-import { auth } from "./src/auth/auth.js";
-
+import morgan from "morgan";
+import { authRoute } from "./src/routes/auth.route.js";
 
 const app = express();
-
-app.all("/api/auth/*splat", toNodeHandler(auth));
-
 app.use(express.json());
+app.use(morgan("dev"));
+
+
+app.use("/api/auth", authRoute);
+
 app.get("/", (req, res)=> {
   res.send("Hello from khanakhoj server");
 });
