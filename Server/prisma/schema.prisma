@@ -13,4 +13,20 @@ model User {
   email    String @unique
   phone_no String
   password String
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+  sessions session[]
+}
+
+model session {
+  id  Int @id @default(autoincrement())
+  user_id Int
+  refresh_token String
+  ip_address String
+  user_agent String
+  revoked Boolean @default(false)
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
 }

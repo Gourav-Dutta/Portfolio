@@ -20,7 +20,17 @@
 
 import jwt from "jsonwebtoken";
 
-function generateToken(user){
+function generateAccessToken(user, sessionId){
+  return jwt.sign({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    sessionId: sessionId || null
+  }, process.env.JWT_SECREAT_KEY, {expiresIn: "15m"})
+}
+
+
+function generateRefershToken(user){
   return jwt.sign({
     id: user.id,
     email: user.email,
@@ -39,6 +49,7 @@ function verifyToken(token){
 
 
 export {
-  generateToken,
+  generateAccessToken,
+  generateRefershToken,
   verifyToken
 }
