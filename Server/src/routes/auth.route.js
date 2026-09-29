@@ -10,6 +10,8 @@ const route = Router();
 
 route.post("/signup", authController.handleSignUpFunction);
 route.post("/login", authController.handleLoginFunction);
+route.post("/refresh-token", authController.handleRefreshTokenFunction);
+route.post("/logout", authController.handleLogoutFunction);
 
 
 export {route as authRoute};
