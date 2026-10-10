@@ -19,6 +19,7 @@
 
 
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 function generateAccessToken(user, sessionId){
   return jwt.sign({
@@ -34,7 +35,8 @@ function generateRefershToken(user){
   return jwt.sign({
     id: user.id,
     email: user.email,
-    name: user.name
+    name: user.name,
+    jti: crypto.randomUUID()
   }, process.env.JWT_SECREAT_KEY, {expiresIn: "7d"})
 }
 

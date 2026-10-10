@@ -218,7 +218,10 @@ async function handleRefreshToken(req, res) {
 
 async function handleLogout(req, res) {
     try {
+        console.log("Logout request received");
+        console.log("Cookies: ", req.cookies);
         const refreshToken = req.cookies.refreshToken;
+        console.log("Refresh Token: ", refreshToken);
         if (!refreshToken) {
             return res.status(401).json({
                 message: "Refresh token not found"
@@ -233,6 +236,12 @@ async function handleLogout(req, res) {
         let matchSession = null;
         for (const session of sessions) {
             const isMatch = await bcrypt.compare(refreshToken, session.refresh_token)
+            // console.log("Is match: ", isMatch);
+            // const hashRefreshToken = await bcrypt.hash(refreshToken, 10);
+            // console.log("Refresh Token: ", hashRefreshToken);
+            // console.log("Session Refresh Token: ", session.refresh_token);
+            // console.log("Session : ", session);
+            // console.log("Next");
 
             if (isMatch) {
                 matchSession = session;
