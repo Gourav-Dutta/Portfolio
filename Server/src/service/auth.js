@@ -1,57 +1,47 @@
-// import { betterAuth } from "better-auth";
-// import { prismaAdapter } from "better-auth/adapters/prisma";
-
-// import { prisma } from "../utils/db.js";
-
-// export const auth = betterAuth({
-//   database: prismaAdapter(prisma, {
-//     provider: "postgresql",
-//   }),
-
-//   emailAndPassword: {
-//     enabled: true,
-//   },
-
-//   trustedOrigins: [
-//     "http://localhost:3000",
-//   ],
-// });
-
 
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import crypto from "node:crypto";
 
-function generateAccessToken(user, sessionId){
-  return jwt.sign({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    sessionId: sessionId || null
-  }, process.env.JWT_SECREAT_KEY, {expiresIn: "15m"})
+// Generate Access Token
+function generateAccessToken(user) {
+    return jwt.sign(
+        {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+        },
+        process.env.JWT_SECREAT_KEY,
+        {
+            expiresIn: "15m",
+        }
+    );
 }
 
 
-function generateRefershToken(user){
-  return jwt.sign({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    jti: crypto.randomUUID()
-  }, process.env.JWT_SECREAT_KEY, {expiresIn: "7d"})
+// Refresh Token
+function generateRefreshToken() {
+    return crypto.randomBytes(32).toString("hex");
 }
 
-function verifyToken(token){
-   try{
-     return jwt.verify(token, process.env.JWT_SECREAT_KEY)
-  }catch(error){
-    console.log("Token verification error:", error);
-    return null;
-  }
+function hashRefreshToken(refreshToken) {
+    return crypto
+        .createHash("sha256")
+        .update(refreshToken)
+        .digest("hex");
 }
 
+// Verify Access Token
+function verifyToken(token) {
+    try {
+        return jwt.verify(token, process.env.JWT_SECREAT_KEY);
+    } catch {
+        return null;
+    }
+}
 
 export {
-  generateAccessToken,
-  generateRefershToken,
-  verifyToken
-}
+    generateAccessToken,
+    generateRefreshToken,
+    hashRefreshToken,
+    verifyToken,
+};
